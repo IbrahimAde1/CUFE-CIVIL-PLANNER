@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUFE Civil Engineering Planner & Timetable</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Google Fonts: Cairo & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+        .code-font {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* A4 Landscape Specialized Print Styles */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm 10mm;
+            }
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            /* Hide non-printable elements */
+            header, nav, .no-print, button, .toast-notification, .modal-overlay {
+                display: none !important;
+            }
+            .print-header {
+                display: block !important;
+            }
+            .printable-content {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                page-break-inside: avoid !important;
+            }
+            th, td {
+                border: 1px solid #334155 !important;
+                padding: 4px 6px !important;
+                font-size: 10px !important;
+            }
+            .slot-card {
+                border: 1px solid #1e293b !important;
+                box-shadow: none !important;
+                padding: 3px 5px !important;
+                margin-bottom: 2px !important;
+                color: #ffffff !important;
+            }
+        }
+        @media screen {
+            .print-header {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Total graduation hours for CVE CUFE 2023 Bylaws
+        const TOTAL_PROGRAM_HOURS = 144;
+
+        // Comprehensive CVE Course Map Catalog with Official English Names & Codes
+        const COURSE_CATALOG = [
+            // ==================== PREPARATORY (FRESHMAN) ====================
+            {
+                id: 'MTH_G001',
+                code: 'MTH G001',
+                name: 'Algebra',
+                credits: 2,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'MTH_G002',
+                code: 'MTH G002',
+                name: 'Calculus 1',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'PHY_G001',
+                code: 'PHY G001',
+                name: 'Mechanical Properties of Matter & Thermodynamics',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'EMC_G001',
+                code: 'EMC G001',
+                name: 'Engineering Mechanics-Statics',
+                credits: 2,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'GEN_G001',
+                code: 'GEN G001',
+                name: 'Critical & Creative Thinking',
+                credits: 2,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'INT_G001',
+                code: 'INT G001',
+                name: 'Technical Drawing',
+                credits: 2,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'INT_G005',
+                code: 'INT G005',
+                name: 'Introduction to Computer Science',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Fall',
+                termNum: 1,
+                prereqs: []
+            },
+            {
+                id: 'CHE_G001',
+                code: 'CHE G001',
+                name: 'Chemistry for Engineers',
+                credits: 2,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Spring',
+                termNum: 2,
+                prereqs: []
+            },
+            {
+                id: 'ENG_G001',
+                code: 'ENG G001',
+                name: 'Applied & Modern Manufacturing Engineering',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Spring',
+                termNum: 2,
+                prereqs: []
+            },
+            {
+                id: 'MTH_G003',
+                code: 'MTH G003',
+                name: 'Calculus 2',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Spring',
+                termNum: 2,
+                prereqs: ['MTH_G002']
+            },
+            {
+                id: 'PHY_G002',
+                code: 'PHY G002',
+                name: 'Electricity and Magnetism',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Spring',
+                termNum: 2,
+                prereqs: []
+            },
+            {
+                id: 'GEN_G002',
+                code: 'GEN G002',
+                name: 'Societal Issues',
+                credits: 2,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Spring',
+                termNum: 2,
+                prereqs: []
+            },
+            {
+                id: 'EMC_G002',
+                code: 'EMC G002',
+                name: 'Engineering Mechanics-Dynamics',
+                credits: 3,
+                year: 'Preparatory',
+                yearNum: 0,
+                term: 'Spring',
+                termNum: 2,
+                prereqs: []
+            },
+
+            // ==================== SOPHOMORE (1ST YEAR CIVIL) ====================
+            {
+                id: 'STR_G111',
+                code: 'STR G111',
+                name: 'Structural Analysis (1) Statically Determinate Structures',
+                credits: 3,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Fall',
+                termNum: 3,
+                prereqs: []
+            },
+            {
+                id: 'STR_G141',
+                code: 'STR G141',
+                name: 'Properties & Strength of Construction Materials',
+                credits: 4,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Fall',
+                termNum: 3,
+                prereqs: []
+            },
+            {
+                id: 'IHD_G111',
+                code: 'IHD G111',
+                name: 'Civil Engineering Drawings',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Fall',
+                termNum: 3,
+                prereqs: ['INT_G001']
+            },
+            {
+                id: 'MTH_G102',
+                code: 'MTH G102',
+                name: 'Linear Algebra and Multivariable Integrals',
+                credits: 3,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Fall',
+                termNum: 3,
+                prereqs: ['MTH_G003']
+            },
+            {
+                id: 'PHY_G106',
+                code: 'PHY G106',
+                name: 'Basic Science Elective',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Fall',
+                termNum: 3,
+                prereqs: []
+            },
+            {
+                id: 'GEN_G111',
+                code: 'GEN G111',
+                name: 'Selected Topics',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Fall',
+                termNum: 3,
+                prereqs: []
+            },
+            {
+                id: 'STR_G132',
+                code: 'STR G132',
+                name: 'Structural Mechanics (1) Elementary Stress Analysis',
+                credits: 3,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Spring',
+                termNum: 4,
+                prereqs: ['STR_G111']
+            },
+            {
+                id: 'STR_G241',
+                code: 'STR G241',
+                name: 'Technology of Construction Materials',
+                credits: 4,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Spring',
+                termNum: 4,
+                prereqs: ['STR_G141']
+            },
+            {
+                id: 'MTH_G110',
+                code: 'MTH G110',
+                name: 'Introduction to Numerical Analysis',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Spring',
+                termNum: 4,
+                prereqs: ['MTH_G102']
+            },
+            {
+                id: 'IHD_G112',
+                code: 'IHD G112',
+                name: 'Introduction to Water Resources and Irrigation',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Spring',
+                termNum: 4,
+                prereqs: []
+            },
+            {
+                id: 'MTH_G113',
+                code: 'MTH G113',
+                name: 'Probability and Statistics',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Spring',
+                termNum: 4,
+                prereqs: ['MTH_G003']
+            },
+            {
+                id: 'GEN_G11X',
+                code: 'GEN G11X',
+                name: '(UR4) Restricted Elective 1',
+                credits: 2,
+                year: 'Sophomore (1st Year)',
+                yearNum: 1,
+                term: 'Spring',
+                termNum: 4,
+                prereqs: []
+            },
+
+            // ==================== JUNIOR (2ND YEAR CIVIL) ====================
+            {
+                id: 'STR_G211',
+                code: 'STR G211',
+                name: 'Structural Analysis (2) Deformations & Statically Indeterminate Structures',
+                credits: 3,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Fall',
+                termNum: 5,
+                prereqs: ['STR_G111']
+            },
+            {
+                id: 'STR_G221',
+                code: 'STR G221',
+                name: 'Reinforced Concrete (1) Design of RC Beams',
+                credits: 4,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Fall',
+                termNum: 5,
+                prereqs: ['STR_G111']
+            },
+            {
+                id: 'IHD_G211',
+                code: 'IHD G211',
+                name: 'Fluid Mechanics',
+                credits: 3,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Fall',
+                termNum: 5,
+                prereqs: []
+            },
+            {
+                id: 'ARC_G211',
+                code: 'ARC G211',
+                name: 'Planning, Building Construction and Architectural Specifications',
+                credits: 1,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Fall',
+                termNum: 5,
+                prereqs: []
+            },
+            {
+                id: 'PBW_G211',
+                code: 'PBW G211',
+                name: 'Surveying',
+                credits: 4,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Fall',
+                termNum: 5,
+                prereqs: ['PHY_G002']
+            },
+            {
+                id: 'GEN_G351',
+                code: 'GEN G351',
+                name: 'Selected Current Local Issues',
+                credits: 1,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Fall',
+                termNum: 5,
+                prereqs: []
+            },
+            {
+                id: 'STR_G212',
+                code: 'STR G212',
+                name: 'Structural Mechanics (2) Advanced Stress Analysis',
+                credits: 2,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: ['STR_G132']
+            },
+            {
+                id: 'STR_G222',
+                code: 'STR G222',
+                name: 'Reinforced Concrete (2) Design of RC Slabs',
+                credits: 3,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: ['STR_G221']
+            },
+            {
+                id: 'IHD_G212',
+                code: 'IHD G212',
+                name: 'Hydraulics of Pipelines and Pump',
+                credits: 2,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: ['IHD_G211']
+            },
+            {
+                id: 'IHD_G234',
+                code: 'IHD G234',
+                name: 'Open Channels and Groundwater Hydraulics',
+                credits: 2,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: ['IHD_G211']
+            },
+            {
+                id: 'PBW_G214',
+                code: 'PBW G214',
+                name: 'Geomatics',
+                credits: 4,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: ['PBW_G211']
+            },
+            {
+                id: 'CVE_G281',
+                code: 'CVE G281',
+                name: 'Industrial Training 1',
+                credits: 1,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: []
+            },
+            {
+                id: 'CVE_G261',
+                code: 'CVE G261',
+                name: 'Construction Project Management',
+                credits: 2,
+                year: 'Junior (2nd Year)',
+                yearNum: 2,
+                term: 'Spring',
+                termNum: 6,
+                prereqs: []
+            },
+
+            // ==================== SENIOR 1 (3RD YEAR CIVIL) ====================
+            {
+                id: 'STR_G311',
+                code: 'STR G311',
+                name: 'Structural Analysis (3) Matrix Stress Analysis & Applied Methods',
+                credits: 3,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Fall',
+                termNum: 7,
+                prereqs: ['STR_G211']
+            },
+            {
+                id: 'STR_G321',
+                code: 'STR G321',
+                name: 'Reinforced Concrete (3) Design of Long-span RC Structures',
+                credits: 2,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Fall',
+                termNum: 7,
+                prereqs: ['STR_G222']
+            },
+            {
+                id: 'STR_G351',
+                code: 'STR G351',
+                name: 'Steel Structures (1) Members',
+                credits: 3,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Fall',
+                termNum: 7,
+                prereqs: ['STR_G211', 'STR_G241']
+            },
+            {
+                id: 'IHD_G311',
+                code: 'IHD G311',
+                name: 'Irrigation & Drainage Engineering',
+                credits: 3,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Fall',
+                termNum: 7,
+                prereqs: ['IHD_G234', 'IHD_G111']
+            },
+            {
+                id: 'PBW_G321',
+                code: 'PBW G321',
+                name: 'Transport Planning and Traffic Engineering',
+                credits: 4,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Fall',
+                termNum: 7,
+                prereqs: ['PHY_G002']
+            },
+            {
+                id: 'GEN_G232',
+                code: 'GEN G232',
+                name: 'Restricted Elective Course',
+                credits: 1,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Fall',
+                termNum: 7,
+                prereqs: []
+            },
+            {
+                id: 'STR_G31X',
+                code: 'STR G31X',
+                name: 'Structural Mechanics Elective Course',
+                credits: 2,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Spring',
+                termNum: 8,
+                prereqs: ['STR_G212']
+            },
+            {
+                id: 'STR_G322',
+                code: 'STR G322',
+                name: 'Reinforced Concrete (4) Design of Special RC Structures',
+                credits: 2,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Spring',
+                termNum: 8,
+                prereqs: ['STR_G321']
+            },
+            {
+                id: 'STR_G352',
+                code: 'STR G352',
+                name: 'Steel Structures (2) Connections',
+                credits: 3,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Spring',
+                termNum: 8,
+                prereqs: ['STR_G351']
+            },
+            {
+                id: 'IHD_G312',
+                code: 'IHD G312',
+                name: 'Design of Irrigation Works',
+                credits: 3,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Spring',
+                termNum: 8,
+                prereqs: ['IHD_G311']
+            },
+            {
+                id: 'PBW_G331',
+                code: 'PBW G331',
+                name: 'Soil Mechanics',
+                credits: 4,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Spring',
+                termNum: 8,
+                prereqs: ['IHD_G211']
+            },
+            {
+                id: 'GEN_G24X',
+                code: 'GEN G24X',
+                name: '(UR6) Free Elective',
+                credits: 2,
+                year: 'Senior 1 (3rd Year)',
+                yearNum: 3,
+                term: 'Spring',
+                termNum: 8,
+                prereqs: []
+            },
+        ];
+
+        const SCHEDULE_DATABASE = {
+            // ==================== 1ST YEAR CIVIL (SOPHOMORE FALL) ====================
+            'STR_G111': {
+                lecture: [
+                    { day: 'Monday', start: '08:00', end: '09:50', room: 'Hall 1204' }
+                ],
+                groups: {
+                    'Civil1-01': [{ type: 'Tut', day: 'Tuesday', start: '08:00', end: '10:50', room: '4301-52' }],
+                    'Civil1-02': [
+                        { type: 'Tut', day: 'Wednesday', start: '08:00', end: '09:50', room: '17400-56' },
+                        { type: 'Tut', day: 'Wednesday', start: '11:00', end: '11:50', room: '17400-56' }
+                    ],
+                    'Civil1-03': [{ type: 'Tut', day: 'Monday', start: '12:00', end: '13:50', room: '17401-56' }],
+                    'Civil1-04': [
+                        { type: 'Tut', day: 'Monday', start: '08:00', end: '09:50', room: '17400-56' },
+                        { type: 'Tut', day: 'Monday', start: '11:00', end: '11:50', room: '17400-56' }
+                    ],
+                    'Civil1-05': [{ type: 'Tut', day: 'Sunday', start: '08:00', end: '10:50', room: '4301-52' }],
+                    'Civil1-06': [{ type: 'Tut', day: 'Sunday', start: '10:00', end: '12:50', room: '17301-56' }]
+                }
+            },
+            'STR_G141': {
+                lecture: [
+                    { day: 'Thursday', start: '08:00', end: '09:50', room: 'Hall 1204' },
+                    { type: 'Tut', day: 'Thursday', start: '10:00', end: '10:50', room: 'Hall 1204' }
+                ],
+                groups: {
+                    'Civil1-01': [
+                        { type: 'Lab', day: 'Wednesday', start: '08:00', end: '09:50', room: '17301-56' },
+                        { type: 'Lab', day: 'Wednesday', start: '12:00', end: '12:50', room: '17301-56' }
+                    ],
+                    'Civil1-02': [{ type: 'Lab', day: 'Tuesday', start: '10:00', end: '13:50', room: '17400-56' }],
+                    'Civil1-03': [{ type: 'Lab', day: 'Tuesday', start: '08:00', end: '10:50', room: '17400-56' }],
+                    'Civil1-04': [{ type: 'Lab', day: 'Sunday', start: '08:00', end: '10:50', room: 'STR Lab' }],
+                    'Civil1-05': [{ type: 'Lab', day: 'Wednesday', start: '12:00', end: '14:50', room: 'STR Lab' }],
+                    'Civil1-06': [
+                        { type: 'Lab', day: 'Monday', start: '08:00', end: '09:50', room: 'STR Lab' },
+                        { type: 'Lab', day: 'Monday', start: '12:00', end: '12:50', room: 'STR Lab' }
+                    ]
+                }
+            },
+            'IHD_G111': {
+                lecture: [],
+                groups: {
+                    'Civil1-01': [{ type: 'Tut', day: 'Sunday', start: '08:00', end: '13:50', room: '31300-200' }],
+                    'Civil1-02': [{ type: 'Tut', day: 'Sunday', start: '08:00', end: '13:50', room: '31300-200' }],
+                    'Civil1-03': [{ type: 'Tut', day: 'Sunday', start: '08:00', end: '13:50', room: '31300-200' }],
+                    'Civil1-04': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '13:50', room: '31300-200' }],
+                    'Civil1-05': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '13:50', room: '31300-200' }],
+                    'Civil1-06': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '13:50', room: '31300-200' }]
+                }
+            },
+            'MTH_G102': {
+                lecture: [
+                    { day: 'Sunday', start: '12:00', end: '13:50', room: 'Hall 3001-414' }
+                ],
+                groups: {
+                    'Civil1-01': [{ type: 'Tut', day: 'Wednesday', start: '13:00', end: '14:50', room: '4303-280' }],
+                    'Civil1-02': [
+                        { type: 'Tut', day: 'Tuesday', start: '08:00', end: '08:50', room: '3102-306' },
+                        { type: 'Tut', day: 'Tuesday', start: '12:00', end: '12:50', room: '3102-306' }
+                    ],
+                    'Civil1-03': [{ type: 'Tut', day: 'Tuesday', start: '11:00', end: '12:50', room: '17201-56' }],
+                    'Civil1-04': [{ type: 'Tut', day: 'Monday', start: '13:00', end: '14:50', room: '14301-50' }],
+                    'Civil1-05': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '09:50', room: '4302-55' }],
+                    'Civil1-06': [{ type: 'Tut', day: 'Tuesday', start: '13:00', end: '14:50', room: '14301-50' }]
+                }
+            },
+            'PHY_G106': {
+                lecture: [
+                    { day: 'Thursday', start: '12:00', end: '13:50', room: 'Hall 3001-414' }
+                ],
+                groups: {
+                    'Civil1-01': [{ type: 'Lab', day: 'Thursday', start: '14:00', end: '15:50', room: '14200-104' }],
+                    'Civil1-02': [{ type: 'Lab', day: 'Thursday', start: '14:00', end: '15:50', room: '14200-104' }],
+                    'Civil1-03': [{ type: 'Lab', day: 'Wednesday', start: '08:00', end: '09:50', room: '14200-104' }],
+                    'Civil1-04': [{ type: 'Lab', day: 'Sunday', start: '11:00', end: '12:50', room: '17201-56' }],
+                    'Civil1-05': [{ type: 'Lab', day: 'Sunday', start: '11:00', end: '12:50', room: '4301-52' }],
+                    'Civil1-06': [{ type: 'Lab', day: 'Sunday', start: '08:00', end: '09:50', room: '17200-56' }]
+                }
+            },
+            'GEN_G111': {
+                lecture: [
+                    { day: 'Tuesday', start: '14:00', end: '14:50', room: 'Hall 3001-414' }
+                ],
+                groups: {
+                    'Civil1-01': [], 'Civil1-02': [], 'Civil1-03': [], 'Civil1-04': [], 'Civil1-05': [], 'Civil1-06': []
+                }
+            },
+
+            // ==================== 2ND YEAR CIVIL (JUNIOR FALL) ====================
+            'STR_G211': {
+                lecture: [
+                    { day: 'Monday', start: '08:00', end: '09:50', room: 'Hall 1213' }
+                ],
+                groups: {
+                    'Civil2-01': [{ type: 'Tut', day: 'Sunday', start: '10:00', end: '11:50', room: '14302-50' }],
+                    'Civil2-02': [{ type: 'Tut', day: 'Tuesday', start: '11:00', end: '12:50', room: '4302-55' }],
+                    'Civil2-03': [{ type: 'Tut', day: 'Sunday', start: '13:00', end: '14:50', room: '4301-52' }],
+                    'Civil2-04': [{ type: 'Tut', day: 'Sunday', start: '08:00', end: '09:50', room: '14302-50' }],
+                    'Civil2-05': [{ type: 'Tut', day: 'Wednesday', start: '13:00', end: '14:50', room: '17400-56' }],
+                    'Civil2-06': [{ type: 'Tut', day: 'Monday', start: '12:00', end: '13:50', room: 'Hall 1213' }]
+                }
+            },
+            'STR_G221': {
+                lecture: [
+                    { day: 'Wednesday', start: '08:00', end: '09:50', room: 'Hall 1313' },
+                    { day: 'Thursday', start: '08:00', end: '09:50', room: 'Hall 1213' }
+                ],
+                groups: {
+                    'Civil2-01': [{ type: 'Tut', day: 'Sunday', start: '08:00', end: '09:50', room: 'RC Lab 1' }],
+                    'Civil2-02': [{ type: 'Tut', day: 'Sunday', start: '12:00', end: '13:50', room: 'RC Lab 2' }],
+                    'Civil2-03': [{ type: 'Tut', day: 'Tuesday', start: '10:00', end: '11:50', room: 'RC Lab 2' }],
+                    'Civil2-04': [{ type: 'Tut', day: 'Monday', start: '12:00', end: '13:50', room: 'RC Lab 1' }],
+                    'Civil2-05': [{ type: 'Tut', day: 'Tuesday', start: '12:00', end: '13:50', room: 'RC Lab 1' }],
+                    'Civil2-06': [{ type: 'Tut', day: 'Tuesday', start: '14:00', end: '15:50', room: 'RC Lab 1' }]
+                }
+            },
+            'IHD_G211': {
+                lecture: [
+                    { day: 'Thursday', start: '10:00', end: '11:50', room: 'Hall 31304' }
+                ],
+                groups: {
+                    'Civil2-01': [{ type: 'Lab', day: 'Tuesday', start: '12:00', end: '14:50', room: '31304-200' }],
+                    'Civil2-02': [{ type: 'Lab', day: 'Tuesday', start: '13:00', end: '15:50', room: '31300-200' }],
+                    'Civil2-03': [{ type: 'Lab', day: 'Tuesday', start: '08:00', end: '10:50', room: '31300B-150' }],
+                    'Civil2-04': [{ type: 'Lab', day: 'Tuesday', start: '10:00', end: '12:50', room: '31204-80' }],
+                    'Civil2-05': [{ type: 'Lab', day: 'Thursday', start: '08:00', end: '10:50', room: '31300B-150' }],
+                    'Civil2-06': [{ type: 'Lab', day: 'Tuesday', start: '08:00', end: '10:50', room: '31300B-150' }]
+                }
+            },
+            'PBW_G211': {
+                lecture: [
+                    { day: 'Monday', start: '08:00', end: '09:50', room: 'Hall 1213' }
+                ],
+                groups: {
+                    'Civil2-01': [
+                        { type: 'Lab', day: 'Monday', start: '10:00', end: '11:50', room: 'PBW Lab' },
+                        { type: 'Tut', day: 'Thursday', start: '08:00', end: '09:50', room: '19301-48' }
+                    ],
+                    'Civil2-02': [
+                        { type: 'Lab', day: 'Monday', start: '13:00', end: '14:50', room: 'PBW Lab' },
+                        { type: 'Tut', day: 'Thursday', start: '08:00', end: '09:50', room: '19301-48' }
+                    ],
+                    'Civil2-03': [{ type: 'Lab', day: 'Monday', start: '12:00', end: '14:50', room: 'PBW Lab' }],
+                    'Civil2-04': [{ type: 'Lab', day: 'Tuesday', start: '12:00', end: '14:50', room: 'PBW Lab' }],
+                    'Civil2-05': [{ type: 'Lab', day: 'Sunday', start: '10:00', end: '11:50', room: 'PBW Lab' }],
+                    'Civil2-06': [{ type: 'Lab', day: 'Thursday', start: '12:00', end: '14:50', room: 'PBW Lab' }]
+                }
+            },
+            'ARC_G211': {
+                lecture: [
+                    { day: 'Sunday', start: '09:00', end: '09:50', room: 'Hall 4202' }
+                ],
+                groups: {
+                    'Civil2-01': [{ type: 'Tut', day: 'Monday', start: '14:00', end: '15:50', room: '4304-50' }],
+                    'Civil2-02': [{ type: 'Tut', day: 'Monday', start: '13:00', end: '14:50', room: '14301-50' }],
+                    'Civil2-03': [{ type: 'Tut', day: 'Wednesday', start: '13:00', end: '14:50', room: '17200-56' }],
+                    'Civil2-04': [{ type: 'Tut', day: 'Wednesday', start: '13:00', end: '14:50', room: '14200-104' }],
+                    'Civil2-05': [{ type: 'Tut', day: 'Sunday', start: '13:00', end: '14:50', room: 'Hall 1204' }],
+                    'Civil2-06': [{ type: 'Tut', day: 'Wednesday', start: '14:00', end: '15:50', room: '14201-50' }]
+                }
+            },
+            'GEN_G351': {
+                lecture: [
+                    { day: 'Sunday', start: '08:00', end: '08:50', room: 'Hall 4202' }
+                ],
+                groups: {
+                    'Civil2-01': [], 'Civil2-02': [], 'Civil2-03': [], 'Civil2-04': [], 'Civil2-05': [], 'Civil2-06': []
+                }
+            },
+
+            // ==================== 3RD YEAR CIVIL (SENIOR 1 FALL) ====================
+            'STR_G311': {
+                lecture: [
+                    { day: 'Sunday', start: '08:00', end: '09:50', room: 'Hall 1213' }
+                ],
+                groups: {
+                    'Civil3-01': [{ type: 'Tut', day: 'Tuesday', start: '08:00', end: '10:50', room: 'Hall 3001' }],
+                    'Civil3-02': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '10:50', room: '4304-50' }],
+                    'Civil3-03': [{ type: 'Tut', day: 'Sunday', start: '10:00', end: '12:50', room: '4303-280' }],
+                    'Civil3-04': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '10:50', room: '17301-56' }],
+                    'Civil3-05': [{ type: 'Tut', day: 'Wednesday', start: '13:00', end: '15:50', room: 'Hall 1204' }],
+                    'Civil3-06': [{ type: 'Tut', day: 'Thursday', start: '08:00', end: '10:50', room: '4302-55' }]
+                }
+            },
+            'STR_G321': {
+                lecture: [
+                    { day: 'Monday', start: '10:00', end: '11:50', room: 'Hall 4202' }
+                ],
+                groups: {
+                    'Civil3-01': [{ type: 'Tut', day: 'Sunday', start: '10:00', end: '12:50', room: 'RC Lab 2' }],
+                    'Civil3-02': [{ type: 'Tut', day: 'Sunday', start: '11:00', end: '13:50', room: 'RC Lab 1' }],
+                    'Civil3-03': [{ type: 'Tut', day: 'Sunday', start: '11:00', end: '13:50', room: 'RC Lab 2' }],
+                    'Civil3-04': [{ type: 'Tut', day: 'Wednesday', start: '11:00', end: '13:50', room: 'RC Lab 1' }],
+                    'Civil3-05': [{ type: 'Tut', day: 'Wednesday', start: '11:00', end: '13:50', room: 'RC Lab 2' }],
+                    'Civil3-06': [{ type: 'Tut', day: 'Wednesday', start: '13:00', end: '15:50', room: 'RC Lab 2' }]
+                }
+            },
+            'STR_G351': {
+                lecture: [
+                    { day: 'Monday', start: '08:00', end: '09:50', room: 'Hall 3001' }
+                ],
+                groups: {
+                    'Civil3-01': [{ type: 'Tut', day: 'Tuesday', start: '11:00', end: '13:50', room: '31204-80' }],
+                    'Civil3-02': [{ type: 'Tut', day: 'Wednesday', start: '11:00', end: '13:50', room: '4304-50' }],
+                    'Civil3-03': [{ type: 'Tut', day: 'Sunday', start: '13:00', end: '15:50', room: '3101-306' }],
+                    'Civil3-04': [{ type: 'Tut', day: 'Monday', start: '08:00', end: '10:50', room: '4304-50' }],
+                    'Civil3-05': [{ type: 'Tut', day: 'Monday', start: '08:00', end: '10:50', room: '31207-80' }],
+                    'Civil3-06': [{ type: 'Tut', day: 'Thursday', start: '11:00', end: '13:50', room: '4301-52' }]
+                }
+            },
+            'IHD_G311': {
+                lecture: [
+                    { day: 'Tuesday', start: '11:00', end: '12:50', room: 'Hall 31304' }
+                ],
+                groups: {
+                    'Civil3-01': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '10:50', room: '31207-80' }],
+                    'Civil3-02': [{ type: 'Tut', day: 'Tuesday', start: '08:00', end: '10:50', room: '31204-80' }],
+                    'Civil3-03': [{ type: 'Tut', day: 'Monday', start: '08:00', end: '10:50', room: '31304-200' }],
+                    'Civil3-04': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '10:50', room: '31204-80' }],
+                    'Civil3-05': [{ type: 'Tut', day: 'Monday', start: '08:00', end: '10:50', room: '31207-80' }],
+                    'Civil3-06': [{ type: 'Tut', day: 'Wednesday', start: '08:00', end: '10:50', room: '31207-80' }]
+                }
+            },
+            'PBW_G321': {
+                lecture: [
+                    { day: 'Tuesday', start: '13:00', end: '14:50', room: 'Hall 3103' }
+                ],
+                groups: {
+                    'Civil3-01': [{ type: 'Tut', day: 'Wednesday', start: '11:00', end: '13:50', room: '19302-48' }],
+                    'Civil3-02': [{ type: 'Tut', day: 'Tuesday', start: '11:00', end: '13:50', room: '31207-80' }],
+                    'Civil3-03': [{ type: 'Tut', day: 'Monday', start: '11:00', end: '13:50', room: '4303-280' }],
+                    'Civil3-04': [{ type: 'Tut', day: 'Monday', start: '08:00', end: '10:50', room: '4303-280' }],
+                    'Civil3-05': [{ type: 'Tut', day: 'Monday', start: '11:00', end: '13:50', room: '4303-280' }],
+                    'Civil3-06': [{ type: 'Tut', day: 'Monday', start: '08:00', end: '10:50', room: '4302-55' }]
+                }
+            },
+            'GEN_G232': {
+                lecture: [
+                    { day: 'Tuesday', start: '14:00', end: '14:50', room: 'Hall 31304' }
+                ],
+                groups: {
+                    'Civil3-01': [], 'Civil3-02': [], 'Civil3-03': [], 'Civil3-04': [], 'Civil3-05': [], 'Civil3-06': []
+                }
+            },
+
+            // ==================== PREPARATORY FALL ====================
+            'MTH_G001': {
+                lecture: [
+                    { day: 'Sunday', start: '11:30', end: '13:20', room: 'Hall 61101' }
+                ],
+                groups: {
+                    'Group-01': [{ type: 'Tut', day: 'Saturday', start: '08:30', end: '10:20', room: '51005' }],
+                    'Group-02': [{ type: 'Tut', day: 'Saturday', start: '10:30', end: '12:20', room: '51011' }],
+                    'Group-03': [{ type: 'Tut', day: 'Sunday', start: '08:30', end: '10:20', room: '51001' }]
+                }
+            },
+            'MTH_G002': {
+                lecture: [
+                    { day: 'Wednesday', start: '11:30', end: '13:20', room: 'Hall 61101' }
+                ],
+                groups: {
+                    'Group-01': [{ type: 'Tut', day: 'Saturday', start: '10:30', end: '12:20', room: '51001' }],
+                    'Group-02': [{ type: 'Tut', day: 'Monday', start: '08:30', end: '10:20', room: '51002' }],
+                    'Group-03': [{ type: 'Tut', day: 'Tuesday', start: '08:30', end: '10:20', room: '51005' }]
+                }
+            },
+            'PHY_G001': {
+                lecture: [
+                    { day: 'Tuesday', start: '11:30', end: '13:20', room: 'Hall 61102' }
+                ],
+                groups: {
+                    'Group-01': [{ type: 'Lab', day: 'Monday', start: '08:30', end: '10:20', room: 'Lab 1' }],
+                    'Group-02': [{ type: 'Lab', day: 'Monday', start: '10:30', end: '12:20', room: 'Lab 2' }],
+                    'Group-03': [{ type: 'Lab', day: 'Tuesday', start: '08:30', end: '10:20', room: 'Lab 1' }]
+                }
+            },
+            'EMC_G001': {
+                lecture: [
+                    { day: 'Tuesday', start: '08:30', end: '10:20', room: 'Hall 61202' }
+                ],
+                groups: {
+                    'Group-01': [{ type: 'Tut', day: 'Wednesday', start: '08:30', end: '10:20', room: '51014' }],
+                    'Group-02': [{ type: 'Tut', day: 'Wednesday', start: '10:30', end: '12:20', room: '51001' }],
+                    'Group-03': [{ type: 'Tut', day: 'Thursday', start: '08:30', end: '10:20', room: '51003' }]
+                }
+            },
+            'GEN_G001': {
+                lecture: [
+                    { day: 'Sunday', start: '08:30', end: '10:20', room: 'Hall 61201' }
+                ],
+                groups: {
+                    'Group-01': [], 'Group-02': [], 'Group-03': []
+                }
+            },
+            'INT_G001': {
+                lecture: [
+                    { day: 'Sunday', start: '10:30', end: '12:20', room: 'Hall 61202' }
+                ],
+                groups: {
+                    'Group-01': [{ type: 'Tut', day: 'Saturday', start: '08:30', end: '11:20', room: 'Drawing Studio' }],
+                    'Group-02': [{ type: 'Tut', day: 'Monday', start: '08:30', end: '11:20', room: 'Drawing Studio' }],
+                    'Group-03': [{ type: 'Tut', day: 'Wednesday', start: '08:30', end: '11:20', room: 'Drawing Studio' }]
+                }
+            },
+            'INT_G005': {
+                lecture: [
+                    { day: 'Monday', start: '11:30', end: '13:20', room: 'Hall 61102' }
+                ],
+                groups: {
+                    'Group-01': [{ type: 'Lab', day: 'Saturday', start: '12:30', end: '14:20', room: 'Comp Lab 1' }],
+                    'Group-02': [{ type: 'Lab', day: 'Wednesday', start: '12:30', end: '14:20', room: 'Comp Lab 2' }],
+                    'Group-03': [{ type: 'Lab', day: 'Thursday', start: '10:30', end: '12:20', room: 'Comp Lab 1' }]
+                }
+            }
+        };
+
+        const App = () => {
+            // State: User passed course IDs
+            const [passedCourses, setPassedCourses] = React.useState(() => {
+                const saved = localStorage.getItem('cufe_cve_passed');
+                return saved ? JSON.parse(saved) : [
+                    'MTH_G001', 'MTH_G002', 'PHY_G001', 'EMC_G001', 'GEN_G001', 'INT_G001', 'INT_G005'
+                ];
+            });
+
+            // State: Selected courses for Fall schedule
+            const [selectedFallCourses, setSelectedFallCourses] = React.useState(() => {
+                const saved = localStorage.getItem('cufe_cve_fall_selected');
+                return saved ? JSON.parse(saved) : [
+                    { courseId: 'STR_G111', group: 'Civil1-01' },
+                    { courseId: 'STR_G141', group: 'Civil1-01' },
+                    { courseId: 'IHD_G111', group: 'Civil1-01' }
+                ];
+            });
+
+            // Active Tab State
+            const [activeTab, setActiveTab] = React.useState('planner'); // 'planner', 'registration', 'schedule'
+
+            // Prerequisite Block Warning Modal State
+            const [prereqModal, setPrereqModal] = React.useState({ show: false, course: null, missing: [] });
+
+            // Toast Message State
+            const [toast, setToast] = React.useState(null);
+
+            // Persist passed courses
+            React.useEffect(() => {
+                localStorage.setItem('cufe_cve_passed', JSON.stringify(passedCourses));
+            }, [passedCourses]);
+
+            // Persist fall selection
+            React.useEffect(() => {
+                localStorage.setItem('cufe_cve_fall_selected', JSON.stringify(selectedFallCourses));
+            }, [selectedFallCourses]);
+
+            // Show Toast Helper
+            const showToast = (message, type = 'info') => {
+                setToast({ message, type });
+                setTimeout(() => setToast(null), 3500);
+            };
+
+            // Calculate total passed credit hours
+            const totalPassedHours = React.useMemo(() => {
+                return COURSE_CATALOG
+                    .filter(c => passedCourses.includes(c.id))
+                    .reduce((sum, c) => sum + c.credits, 0);
+            }, [passedCourses]);
+
+            const passedPercentage = ((totalPassedHours / TOTAL_PROGRAM_HOURS) * 100).toFixed(1);
+
+            // Calculate total registered Fall credit hours
+            const totalRegisteredFallHours = React.useMemo(() => {
+                return selectedFallCourses.reduce((sum, item) => {
+                    const c = COURSE_CATALOG.find(course => course.id === item.courseId);
+                    return sum + (c ? c.credits : 0);
+                }, 0);
+            }, [selectedFallCourses]);
+
+            const fallPercentageOfTotal = ((totalRegisteredFallHours / TOTAL_PROGRAM_HOURS) * 100).toFixed(1);
+
+            // Toggle course passed status
+            const toggleCoursePassed = (courseId) => {
+                if (passedCourses.includes(courseId)) {
+                    // Check if removing this course breaks prerequisites for any other passed course
+                    const dependentPassed = COURSE_CATALOG.filter(c => 
+                        passedCourses.includes(c.id) && c.prereqs.includes(courseId)
+                    );
+                    if (dependentPassed.length > 0) {
+                        showToast(`لا يمكن إلغاء هذه المادة لأنها متطلب سابق لـ: ${dependentPassed.map(d => d.code).join(', ')}`, 'warning');
+                        return;
+                    }
+
+                    // Also remove from registered fall courses if present
+                    setSelectedFallCourses(prev => prev.filter(s => s.courseId !== courseId));
+                    setPassedCourses(prev => prev.filter(id => id !== courseId));
+                    showToast('تم تحديث حالة المادة إلى غير مجتازة');
+                } else {
+                    // Check prerequisites before marking passed
+                    const course = COURSE_CATALOG.find(c => c.id === courseId);
+                    const missingPrereqs = course.prereqs.filter(pId => !passedCourses.includes(pId));
+                    if (missingPrereqs.length > 0) {
+                        const missingNames = missingPrereqs.map(pId => {
+                            const p = COURSE_CATALOG.find(c => c.id === pId);
+                            return p ? `${p.code} - ${p.name}` : pId;
+                        });
+                        setPrereqModal({ show: true, course, missing: missingNames });
+                        return;
+                    }
+                    setPassedCourses(prev => [...prev, courseId]);
+                    showToast(`تمت إضافة ${course.code} لقائمة المواد المجتازة 🎉`, 'success');
+                }
+            };
+
+            // Register / Add Fall Course to Schedule
+            const handleRegisterFallCourse = (courseId, defaultGroup = 'Civil1-01') => {
+                const course = COURSE_CATALOG.find(c => c.id === courseId);
+                if (!course) return;
+
+                // Cannot register a course without passing prerequisites
+                const missingPrereqs = course.prereqs.filter(pId => !passedCourses.includes(pId));
+                if (missingPrereqs.length > 0) {
+                    const missingNames = missingPrereqs.map(pId => {
+                        const p = COURSE_CATALOG.find(c => c.id === pId);
+                        return p ? `${p.code} - ${p.name}` : pId;
+                    });
+                    setPrereqModal({ show: true, course, missing: missingNames });
+                    return;
+                }
+
+                // Check if already registered
+                const isAlready = selectedFallCourses.some(s => s.courseId === courseId);
+                if (isAlready) {
+                    // Remove
+                    setSelectedFallCourses(prev => prev.filter(s => s.courseId !== courseId));
+                    showToast(`تم إلغاء تسجيل مادة ${course.code}`);
+                } else {
+                    // Determine smart default group based on year
+                    let grp = 'Civil1-01';
+                    if (course.yearNum === 2) grp = 'Civil2-01';
+                    if (course.yearNum === 3) grp = 'Civil3-01';
+                    if (course.yearNum === 0) grp = 'Group-01';
+
+                    setSelectedFallCourses(prev => [...prev, { courseId, group: grp }]);
+                    showToast(`تمت إضافة ${course.code} لجدول التسجيل بنجاح`, 'success');
+                }
+            };
+
+            // Update Group selection for registered course
+            const handleGroupChange = (courseId, newGroup) => {
+                setSelectedFallCourses(prev => prev.map(item => {
+                    if (item.courseId === courseId) {
+                        return { ...item, group: newGroup };
+                    }
+                    return item;
+                }));
+            };
+
+            // Helper to parse time string "08:00" -> 8.0, "08:30" -> 8.5
+            const parseTime = (timeStr) => {
+                const [h, m] = timeStr.split(':').map(Number);
+                return h + m / 60;
+            };
+
+            // Generate flattened schedule events for selected courses
+            const activeScheduleEvents = React.useMemo(() => {
+                const events = [];
+                selectedFallCourses.forEach(({ courseId, group }) => {
+                    const course = COURSE_CATALOG.find(c => c.id === courseId);
+                    const sched = SCHEDULE_DATABASE[courseId];
+                    if (!course || !sched) return;
+
+                    // Add lectures
+                    if (sched.lecture) {
+                        sched.lecture.forEach(lec => {
+                            events.push({
+                                courseId,
+                                code: course.code,
+                                name: course.name,
+                                type: 'Lecture (محاضرة)',
+                                day: lec.day,
+                                start: lec.start,
+                                end: lec.end,
+                                room: lec.room,
+                                group: 'الكل',
+                                color: 'bg-indigo-600 text-white border-indigo-700'
+                            });
+                        });
+                    }
+
+                    // Add tutorial / lab for chosen group
+                    if (sched.groups && sched.groups[group]) {
+                        sched.groups[group].forEach(tut => {
+                            events.push({
+                                courseId,
+                                code: course.code,
+                                name: course.name,
+                                type: tut.type === 'Lab' ? 'Lab (معمل)' : 'Tutorial (سكشن)',
+                                day: tut.day,
+                                start: tut.start,
+                                end: tut.end,
+                                room: tut.room,
+                                group: group,
+                                color: tut.type === 'Lab' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-sky-600 text-white border-sky-700'
+                            });
+                        });
+                    }
+                });
+                return events;
+            }, [selectedFallCourses]);
+
+            // Conflict Detector
+            const scheduleConflicts = React.useMemo(() => {
+                const conflicts = [];
+                for (let i = 0; i < activeScheduleEvents.length; i++) {
+                    for (let j = i + 1; j < activeScheduleEvents.length; j++) {
+                        const e1 = activeScheduleEvents[i];
+                        const e2 = activeScheduleEvents[j];
+
+                        if (e1.day === e2.day) {
+                            const s1 = parseTime(e1.start);
+                            const e1_end = parseTime(e1.end);
+                            const s2 = parseTime(e2.start);
+                            const e2_end = parseTime(e2.end);
+
+                            // Check time overlap
+                            if (Math.max(s1, s2) < Math.min(e1_end, e2_end)) {
+                                conflicts.push({
+                                    event1: e1,
+                                    event2: e2,
+                                    day: e1.day,
+                                    timeOverlap: `${Math.max(s1, s2)}:00 - ${Math.min(e1_end, e2_end)}:00`
+                                });
+                            }
+                        }
+                    }
+                }
+                return conflicts;
+            }, [activeScheduleEvents]);
+
+            // Smart Multi-Conflict Resolution Algorithm (Single-Button Solver)
+            const autoResolveAllConflicts = () => {
+                if (selectedFallCourses.length === 0) return;
+
+                // List of all course IDs currently registered
+                const registeredCourseIds = selectedFallCourses.map(item => item.courseId);
+
+                // Helper to calculate total conflicts for a given group configuration
+                const evaluateConfigConflicts = (config) => {
+                    const events = [];
+                    config.forEach(({ courseId, group }) => {
+                        const course = COURSE_CATALOG.find(c => c.id === courseId);
+                        const sched = SCHEDULE_DATABASE[courseId];
+                        if (!course || !sched) return;
+
+                        if (sched.lecture) {
+                            sched.lecture.forEach(lec => {
+                                events.push({ courseId, day: lec.day, start: lec.start, end: lec.end });
+                            });
+                        }
+                        if (sched.groups && sched.groups[group]) {
+                            sched.groups[group].forEach(tut => {
+                                events.push({ courseId, day: tut.day, start: tut.start, end: tut.end });
+                            });
+                        }
+                    });
+
+                    let conflictsCount = 0;
+                    for (let i = 0; i < events.length; i++) {
+                        for (let j = i + 1; j < events.length; j++) {
+                            if (events[i].day === events[j].day) {
+                                const s1 = parseTime(events[i].start);
+                                const e1 = parseTime(events[i].end);
+                                const s2 = parseTime(events[j].start);
+                                const e2 = parseTime(events[j].end);
+                                if (Math.max(s1, s2) < Math.min(e1, e2)) {
+                                    conflictsCount++;
+                                }
+                            }
+                        }
+                    }
+                    return conflictsCount;
+                };
+
+                // Options per course
+                const courseOptions = registeredCourseIds.map(courseId => {
+                    const sched = SCHEDULE_DATABASE[courseId];
+                    if (sched && sched.groups && Object.keys(sched.groups).length > 0) {
+                        return Object.keys(sched.groups);
+                    }
+                    return ['Civil1-01'];
+                });
+
+                // Backtracking Search to find 0 conflicts combination
+                let solutionFound = null;
+
+                const searchCombination = (index, currentAssignment) => {
+                    if (solutionFound) return;
+                    if (index === registeredCourseIds.length) {
+                        if (evaluateConfigConflicts(currentAssignment) === 0) {
+                            solutionFound = [...currentAssignment];
+                        }
+                        return;
+                    }
+
+                    const courseId = registeredCourseIds[index];
+                    const groups = courseOptions[index];
+
+                    for (const g of groups) {
+                        currentAssignment.push({ courseId, group: g });
+                        searchCombination(index + 1, currentAssignment);
+                        currentAssignment.pop();
+                        if (solutionFound) return;
+                    }
+                };
+
+                searchCombination(0, []);
+
+                if (solutionFound) {
+                    setSelectedFallCourses(solutionFound);
+                    showToast('🎉 تم حل جميع التعارضات بنجاح وإعادة ضبط السكاشن تلقائياً!', 'success');
+                } else {
+                    showToast('⚠️ يتعذر إزالة كافة التعارضات تلقائياً بنفس هذه المواد. يرجى تغيير إحدى المواد المسجلة.', 'warning');
+                }
+            };
+
+            // Smart Days Minimizer (تقليل عدد أيام النزول)
+            const minimizeDaysOnCampus = () => {
+                if (selectedFallCourses.length === 0) {
+                    showToast('يرجى اختيار مواد بالجدول أولاً لتقليل عدد أيام النزول', 'warning');
+                    return;
+                }
+
+                const registeredCourseIds = selectedFallCourses.map(item => item.courseId);
+
+                // Options per course
+                const courseOptions = registeredCourseIds.map(courseId => {
+                    const sched = SCHEDULE_DATABASE[courseId];
+                    if (sched && sched.groups && Object.keys(sched.groups).length > 0) {
+                        return Object.keys(sched.groups);
+                    }
+                    return ['Civil1-01'];
+                });
+
+                // Helper to evaluate conflicts and active days for a group combination
+                const evaluateConfig = (config) => {
+                    const events = [];
+                    config.forEach(({ courseId, group }) => {
+                        const course = COURSE_CATALOG.find(c => c.id === courseId);
+                        const sched = SCHEDULE_DATABASE[courseId];
+                        if (!course || !sched) return;
+
+                        if (sched.lecture) {
+                            sched.lecture.forEach(lec => {
+                                events.push({ courseId, day: lec.day, start: lec.start, end: lec.end });
+                            });
+                        }
+                        if (sched.groups && sched.groups[group]) {
+                            sched.groups[group].forEach(tut => {
+                                events.push({ courseId, day: tut.day, start: tut.start, end: tut.end });
+                            });
+                        }
+                    });
+
+                    let conflictsCount = 0;
+                    const activeDaysSet = new Set();
+
+                    for (let i = 0; i < events.length; i++) {
+                        activeDaysSet.add(events[i].day);
+                        for (let j = i + 1; j < events.length; j++) {
+                            if (events[i].day === events[j].day) {
+                                const s1 = parseTime(events[i].start);
+                                const e1 = parseTime(events[i].end);
+                                const s2 = parseTime(events[j].start);
+                                const e2 = parseTime(events[j].end);
+                                if (Math.max(s1, s2) < Math.min(e1, e2)) {
+                                    conflictsCount++;
+                                }
+                            }
+                        }
+                    }
+
+                    return {
+                        conflicts: conflictsCount,
+                        daysCount: activeDaysSet.size
+                    };
+                };
+
+                let bestConfig = null;
+                let minConflicts = Infinity;
+                let minDays = Infinity;
+
+                const searchCombination = (index, currentAssignment) => {
+                    if (index === registeredCourseIds.length) {
+                        const res = evaluateConfig(currentAssignment);
+                        // Prioritize 0 conflicts first, then minimum days
+                        if (res.conflicts < minConflicts) {
+                            minConflicts = res.conflicts;
+                            minDays = res.daysCount;
+                            bestConfig = [...currentAssignment];
+                        } else if (res.conflicts === minConflicts && res.daysCount < minDays) {
+                            minDays = res.daysCount;
+                            bestConfig = [...currentAssignment];
+                        }
+                        return;
+                    }
+
+                    const courseId = registeredCourseIds[index];
+                    const groups = courseOptions[index];
+
+                    for (const g of groups) {
+                        currentAssignment.push({ courseId, group: g });
+                        searchCombination(index + 1, currentAssignment);
+                        currentAssignment.pop();
+                    }
+                };
+
+                searchCombination(0, []);
+
+                if (bestConfig) {
+                    setSelectedFallCourses(bestConfig);
+                    const finalEval = evaluateConfig(bestConfig);
+                    if (finalEval.conflicts === 0) {
+                        showToast(`🗓️ تم ضغط الجدول وتقليل أيام النزول إلى (${finalEval.daysCount}) أيام فقط بدون أي تعارض!`, 'success');
+                    } else {
+                        showToast(`🗓️ تم تقليل عدد أيام النزول إلى (${finalEval.daysCount}) أيام مع وجود ${finalEval.conflicts} تعارض لم يمكن تجنبه.`, 'warning');
+                    }
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Header for print preview only */}
+                    <div className="print-header p-4 border-b-2 border-slate-900 text-center mb-4">
+                        <h1 className="text-xl font-bold">جامعة القاهرة - كلية الهندسة - قسم الهندسة المدنية (لائحة 2023)</h1>
+                        <h2 className="text-md font-semibold text-slate-700">الجدول الدراسي الأسبوعي لمواد الفصل الدراسي الأول</h2>
+                        <div className="text-xs text-slate-600 mt-1 flex justify-between px-6">
+                            <span>الساعات المسجلة: {totalRegisteredFallHours} ساعة معتمدة</span>
+                            <span>النسبة الإجمالية من القسم: {fallPercentageOfTotal}%</span>
+                        </div>
+                    </div>
+
+                    {/* Top Header for screen viewing */}
+                    <header className="bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-800 no-print">
+                        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-sky-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">
+                                        CVE
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                                            كلية الهندسة - جامعة القاهرة
+                                            <span className="text-xs font-normal bg-sky-900 text-sky-200 px-2.5 py-0.5 rounded-full border border-sky-700">
+                                                لائحة 2023 CVE
+                                            </span>
+                                        </h1>
+                                        <p className="text-xs text-slate-400">
+                                            مخطط الساعات المعتمدة ومسجل المواد والجدول الدراسي التفاعلي
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Quick Stats Badges */}
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <div className="bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl text-center">
+                                        <div className="text-xs text-slate-400">الساعات المجتازة الكلية</div>
+                                        <div className="text-sm font-bold text-sky-400">
+                                            {totalPassedHours} / {TOTAL_PROGRAM_HOURS} <span className="text-xs font-normal text-slate-300">ساعة ({passedPercentage}%)</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl text-center">
+                                        <div className="text-xs text-slate-400">ساعات تسجيل الترم الأول</div>
+                                        <div className="text-sm font-bold text-emerald-400">
+                                            {totalRegisteredFallHours} <span className="text-xs font-normal text-slate-300">ساعة ({fallPercentageOfTotal}% من القسم)</span>
+                                        </div>
+                                    </div>
+
+                                    {scheduleConflicts.length > 0 ? (
+                                        <button 
+                                            onClick={() => setActiveTab('schedule')}
+                                            className="bg-red-950/90 border border-red-700 px-3 py-1.5 rounded-xl flex items-center gap-2 text-red-300 text-xs font-semibold animate-pulse hover:bg-red-900 transition-all cursor-pointer"
+                                        >
+                                            <span>⚠️ يوجد تعارض في الجدول ({scheduleConflicts.length})</span>
+                                        </button>
+                                    ) : (
+                                        <div className="bg-emerald-950/80 border border-emerald-800 px-3 py-1.5 rounded-xl text-emerald-300 text-xs font-semibold">
+                                            ✓ لا يوجد تعارض مواعيد
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Navigation Tabs */}
+                            <nav className="flex space-x-1 space-x-reverse mt-4 border-t border-slate-800 pt-2 overflow-x-auto">
+                                <button
+                                    onClick={() => setActiveTab('planner')}
+                                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap ${
+                                        activeTab === 'planner'
+                                            ? 'bg-sky-600 text-white shadow'
+                                            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <span>📊 1. إنجاز الخطة والساعات</span>
+                                    <span className="bg-slate-900/40 text-xs px-2 py-0.5 rounded-full">{totalPassedHours} ساعة</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setActiveTab('registration')}
+                                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap ${
+                                        activeTab === 'registration'
+                                            ? 'bg-sky-600 text-white shadow'
+                                            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <span>📝 2. تسجيل مواد الترم الأول</span>
+                                    <span className="bg-emerald-900/60 text-emerald-200 text-xs px-2 py-0.5 rounded-full">{selectedFallCourses.length} مواد</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setActiveTab('schedule')}
+                                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 whitespace-nowrap ${
+                                        activeTab === 'schedule'
+                                            ? 'bg-sky-600 text-white shadow'
+                                            : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <span>📅 3. الجدول الدراسي والتعارضات</span>
+                                    {scheduleConflicts.length > 0 && (
+                                        <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                                            {scheduleConflicts.length} تعارض
+                                        </span>
+                                    )}
+                                </button>
+                            </nav>
+                        </div>
+                    </header>
+
+                    {/* Toast Notification Container */}
+                    {toast && (
+                        <div className="fixed bottom-5 left-5 z-50 animate-bounce toast-notification no-print">
+                            <div className={`px-4 py-3 rounded-xl shadow-2xl text-sm font-bold flex items-center gap-2 border ${
+                                toast.type === 'warning' ? 'bg-amber-900 text-amber-100 border-amber-700' :
+                                toast.type === 'success' ? 'bg-emerald-900 text-emerald-100 border-emerald-700' :
+                                'bg-slate-900 text-white border-slate-700'
+                            }`}>
+                                <span>{toast.type === 'warning' ? '⚠️' : toast.type === 'success' ? '✅' : 'ℹ️'}</span>
+                                <span>{toast.message}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 printable-content">
+
+                        {/* TAB 1: PLANNER & HOURS */}
+                        {activeTab === 'planner' && (
+                            <div className="space-y-6">
+                                {/* Overall Progress Bar Card */}
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                        <div>
+                                            <h2 className="text-lg font-bold text-slate-900">
+                                                نسبة الإنجاز من الساعات المعتمدة للقسم (144 ساعة)
+                                            </h2>
+                                            <p className="text-sm text-slate-500">
+                                                متابعة تقدمك الدراسي في قسم الهندسة المدنية وتحديد المواد المجتازة والمتبقية
+                                            </p>
+                                        </div>
+                                        <div className="text-left bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                            <div className="text-2xl font-black text-sky-700">{passedPercentage}%</div>
+                                            <div className="text-xs font-semibold text-slate-500">من إجمالي ساعات التخرج</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Progress Bar Graphic */}
+                                    <div className="w-full bg-slate-100 rounded-full h-5 overflow-hidden p-1 border border-slate-200">
+                                        <div
+                                            className="bg-gradient-to-r from-sky-500 to-blue-600 h-full rounded-full transition-all duration-500 flex items-center justify-end px-2 text-[10px] text-white font-bold"
+                                            style={{ width: `${Math.max(Number(passedPercentage), 4)}%` }}
+                                        >
+                                            {passedPercentage > 10 ? `${passedPercentage}%` : ''}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-center">
+                                        <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                            <div className="text-xs text-slate-500 font-semibold">إجمالي س. المعتمدة للقسم</div>
+                                            <div className="text-lg font-bold text-slate-800">{TOTAL_PROGRAM_HOURS} ساعة</div>
+                                        </div>
+                                        <div className="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200">
+                                            <div className="text-xs text-emerald-700 font-semibold">الساعات المجتازة فعلياً</div>
+                                            <div className="text-lg font-bold text-emerald-800">{totalPassedHours} ساعة</div>
+                                        </div>
+                                        <div className="bg-amber-50 p-3.5 rounded-xl border border-amber-200">
+                                            <div className="text-xs text-amber-700 font-semibold">الساعات المتبقية للتمثيل</div>
+                                            <div className="text-lg font-bold text-amber-800">{TOTAL_PROGRAM_HOURS - totalPassedHours} ساعة</div>
+                                        </div>
+                                        <div className="bg-sky-50 p-3.5 rounded-xl border border-sky-200">
+                                            <div className="text-xs text-sky-700 font-semibold">نسبة س. مسجلة بالترم الأول</div>
+                                            <div className="text-lg font-bold text-sky-800">{fallPercentageOfTotal}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Year by Year Course Checklists */}
+                                <div className="space-y-6">
+                                    {['Preparatory', 'Sophomore (1st Year)', 'Junior (2nd Year)', 'Senior 1 (3rd Year)'].map((yearTitle) => {
+                                        const yearCourses = COURSE_CATALOG.filter(c => c.year === yearTitle);
+                                        const yearPassed = yearCourses.filter(c => passedCourses.includes(c.id)).reduce((s, c) => s + c.credits, 0);
+                                        const yearTotal = yearCourses.reduce((s, c) => s + c.credits, 0);
+
+                                        return (
+                                            <div key={yearTitle} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                                                <div className="bg-slate-100 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                                                    <div>
+                                                        <h3 className="font-bold text-slate-900 text-base">
+                                                            {yearTitle === 'Preparatory' ? 'إعدادي هندسة (Freshman Year)' :
+                                                             yearTitle === 'Sophomore (1st Year)' ? 'أولي مدني (Sophomore Year)' :
+                                                             yearTitle === 'Junior (2nd Year)' ? 'ثانية مدني (Junior Year)' :
+                                                             'ثالثة مدني (Senior 1 Year)'}
+                                                        </h3>
+                                                        <p className="text-xs text-slate-500">
+                                                            الساعات المنجزة: {yearPassed} من {yearTotal} ساعة معتمدة
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-xs font-bold px-3 py-1 bg-white border border-slate-300 rounded-full text-slate-700">
+                                                        {((yearPassed / yearTotal) * 100).toFixed(0)}% مكتمل
+                                                    </span>
+                                                </div>
+
+                                                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {['Fall', 'Spring'].map(termName => {
+                                                        const termCourses = yearCourses.filter(c => c.term === termName);
+                                                        if (termCourses.length === 0) return null;
+
+                                                        return (
+                                                            <div key={termName} className="bg-slate-50/70 p-4 rounded-xl border border-slate-200">
+                                                                <h4 className="text-sm font-extrabold text-slate-800 mb-3 flex items-center justify-between border-b border-slate-200 pb-2">
+                                                                    <span>{termName === 'Fall' ? '🍂 الفصل الدراسي الأول (Fall)' : '🌸 الفصل الدراسي الثاني (Spring)'}</span>
+                                                                    <span className="text-xs font-normal text-slate-500">
+                                                                        {termCourses.reduce((s, c) => s + c.credits, 0)} ساعة معتمدة
+                                                                    </span>
+                                                                </h4>
+
+                                                                <div className="space-y-2">
+                                                                    {termCourses.map(course => {
+                                                                        const isPassed = passedCourses.includes(course.id);
+                                                                        const prereqNames = course.prereqs.map(pId => {
+                                                                            const p = COURSE_CATALOG.find(c => c.id === pId);
+                                                                            return p ? p.code : pId;
+                                                                        });
+
+                                                                        return (
+                                                                            <label
+                                                                                key={course.id}
+                                                                                className={`flex items-start justify-between p-3 rounded-lg border transition-all cursor-pointer ${
+                                                                                    isPassed
+                                                                                        ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                                                                                        : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'
+                                                                                }`}
+                                                                            >
+                                                                                <div className="flex items-start gap-3">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={isPassed}
+                                                                                        onChange={() => toggleCoursePassed(course.id)}
+                                                                                        className="mt-1 w-4 h-4 text-sky-600 rounded focus:ring-sky-500 border-slate-300"
+                                                                                    />
+                                                                                    <div>
+                                                                                        <div className="font-bold text-xs code-font flex items-center gap-2">
+                                                                                            <span>{course.code}</span>
+                                                                                            <span className="font-semibold text-slate-700 font-cairo text-xs">
+                                                                                                {course.name}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {prereqNames.length > 0 && (
+                                                                                            <div className="text-[11px] text-slate-500 mt-1 font-cairo">
+                                                                                                المتطلب السابق (Prerequisites):{' '}
+                                                                                                <span className="font-bold text-amber-700 code-font">
+                                                                                                    {prereqNames.join(', ')}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                <span className="text-xs font-extrabold px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200 whitespace-nowrap mr-2">
+                                                                                    {course.credits} ساعة
+                                                                                </span>
+                                                                            </label>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 2: COURSE REGISTRATION */}
+                        {activeTab === 'registration' && (
+                            <div className="space-y-6">
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                                        <div>
+                                            <h2 className="text-lg font-bold text-slate-900">
+                                                تسجيل مواد الترم الأول (Fall Semesters - 1st, 2nd, 3rd Year + Prep)
+                                            </h2>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                يمكنك اختيار مواد الترم الأول من أي سنة دراسية لتكوين جدولك المشترك مع التحقق التلقائي من المتطلبات السابقة (Prerequisites).
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-sky-50 border border-sky-200 p-3 rounded-xl text-left">
+                                            <div className="text-xs text-sky-700 font-semibold">إجمالي الساعات المسجلة بالجدول</div>
+                                            <div className="text-xl font-extrabold text-sky-900">
+                                                {totalRegisteredFallHours} <span className="text-xs font-normal text-slate-600">ساعة معتمدة</span>
+                                            </div>
+                                            <div className="text-[11px] text-sky-600 font-semibold mt-0.5">
+                                                تُمثل {fallPercentageOfTotal}% من ساعات القسم الكلية ({TOTAL_PROGRAM_HOURS} س)
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Fall Courses Grid */}
+                                    <div className="mt-6 space-y-6">
+                                        {[
+                                            { year: 'Sophomore (1st Year)', label: 'مواد أولي مدني - ترم أول' },
+                                            { year: 'Junior (2nd Year)', label: 'مواد ثانية مدني - ترم أول' },
+                                            { year: 'Senior 1 (3rd Year)', label: 'مواد ثالثة مدني - ترم أول' },
+                                            { year: 'Preparatory', label: 'مواد إعدادي هندسة - ترم أول' }
+                                        ].map(({ year, label }) => {
+                                            const fallCourses = COURSE_CATALOG.filter(c => c.year === year && c.term === 'Fall');
+
+                                            return (
+                                                <div key={year} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                                    <h3 className="font-bold text-slate-800 text-sm mb-3 flex items-center justify-between">
+                                                        <span>{label}</span>
+                                                        <span className="text-xs text-slate-500 font-normal">
+                                                            {fallCourses.length} مواد متاحة
+                                                        </span>
+                                                    </h3>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        {fallCourses.map(course => {
+                                                            const isPassed = passedCourses.includes(course.id);
+                                                            const isRegistered = selectedFallCourses.some(s => s.courseId === course.id);
+                                                            const currentRegObj = selectedFallCourses.find(s => s.courseId === course.id);
+
+                                                            // Check prerequisites
+                                                            const missingPrereqs = course.prereqs.filter(pId => !passedCourses.includes(pId));
+                                                            const hasMissingPrereqs = missingPrereqs.length > 0;
+
+                                                            // Group Options depending on course year
+                                                            let groupOptions = ['Civil1-01', 'Civil1-02', 'Civil1-03', 'Civil1-04', 'Civil1-05', 'Civil1-06'];
+                                                            if (course.yearNum === 2) groupOptions = ['Civil2-01', 'Civil2-02', 'Civil2-03', 'Civil2-04', 'Civil2-05', 'Civil2-06'];
+                                                            if (course.yearNum === 3) groupOptions = ['Civil3-01', 'Civil3-02', 'Civil3-03', 'Civil3-04', 'Civil3-05', 'Civil3-06'];
+                                                            if (course.yearNum === 0) groupOptions = ['Group-01', 'Group-02', 'Group-03'];
+
+                                                            return (
+                                                                <div
+                                                                    key={course.id}
+                                                                    className={`p-4 rounded-xl border transition-all flex flex-col justify-between ${
+                                                                        isPassed
+                                                                            ? 'bg-emerald-50/50 border-emerald-200 opacity-75'
+                                                                            : isRegistered
+                                                                            ? 'bg-sky-50 border-sky-300 shadow-sm'
+                                                                            : hasMissingPrereqs
+                                                                            ? 'bg-white border-amber-200/90'
+                                                                            : 'bg-white border-slate-200 hover:border-slate-300'
+                                                                    }`}
+                                                                >
+                                                                    <div>
+                                                                        <div className="flex items-start justify-between gap-2">
+                                                                            <div>
+                                                                                <div className="font-extrabold text-xs code-font text-sky-800">
+                                                                                    {course.code}
+                                                                                </div>
+                                                                                <div className="font-bold text-slate-800 text-xs mt-0.5">
+                                                                                    {course.name}
+                                                                                </div>
+                                                                            </div>
+                                                                            <span className="text-xs font-black px-2 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200 whitespace-nowrap">
+                                                                                {course.credits} ساعة
+                                                                            </span>
+                                                                        </div>
+
+                                                                        {course.prereqs.length > 0 && (
+                                                                            <div className="mt-2 text-[11px] text-slate-600">
+                                                                                <span>المتطلب المطلوب: </span>
+                                                                                <span className={`font-bold code-font ${hasMissingPrereqs ? 'text-amber-700' : 'text-emerald-700'}`}>
+                                                                                    {course.prereqs.map(pId => {
+                                                                                        const p = COURSE_CATALOG.find(c => c.id === pId);
+                                                                                        return p ? p.code : pId;
+                                                                                    }).join(', ')}
+                                                                                </span>
+                                                                                {hasMissingPrereqs && (
+                                                                                    <span className="text-amber-600 mr-1 font-bold"> (غير مجتاز ❌)</span>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                                                                        {isRegistered ? (
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="text-xs font-semibold text-slate-600">المجموعة:</span>
+                                                                                <select
+                                                                                    value={currentRegObj?.group || groupOptions[0]}
+                                                                                    onChange={(e) => handleGroupChange(course.id, e.target.value)}
+                                                                                    className="text-xs font-bold bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                                                                >
+                                                                                    {groupOptions.map(g => (
+                                                                                        <option key={g} value={g}>{g}</option>
+                                                                                    ))}
+                                                                                </select>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="text-[11px] text-slate-400">
+                                                                                {isPassed ? 'مادة مجتازة سابقاً' : hasMissingPrereqs ? 'يتطلب إنجاز المتطلب أولاً' : 'جاهزة للتسجيل'}
+                                                                            </div>
+                                                                        )}
+
+                                                                        {isPassed ? (
+                                                                            <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-lg">
+                                                                                ✓ مجتازة
+                                                                            </span>
+                                                                        ) : isRegistered ? (
+                                                                            <button
+                                                                                onClick={() => handleRegisterFallCourse(course.id)}
+                                                                                className="text-xs font-bold text-red-700 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-all cursor-pointer"
+                                                                            >
+                                                                                إلغاء التسجيل
+                                                                            </button>
+                                                                        ) : (
+                                                                            <button
+                                                                                onClick={() => handleRegisterFallCourse(course.id)}
+                                                                                disabled={hasMissingPrereqs}
+                                                                                className={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all cursor-pointer ${
+                                                                                    hasMissingPrereqs
+                                                                                        ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                                                                                        : 'bg-sky-600 hover:bg-sky-700 text-white shadow-sm'
+                                                                                }`}
+                                                                            >
+                                                                                + تسجيل المادة
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 3: TIMETABLE & CONFLICT RESOLUTION */}
+                        {activeTab === 'schedule' && (
+                            <div className="space-y-6">
+                                {/* Conflict Alert Banner with Single-Button Solver */}
+                                {scheduleConflicts.length > 0 && (
+                                    <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5 shadow-md no-print">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-xl shrink-0 shadow">
+                                                    ⚠️
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-extrabold text-red-900 text-base">
+                                                        تم اكتشاف تعارض في مواعيد الجدول ({scheduleConflicts.length} تعارض)
+                                                    </h3>
+                                                    <p className="text-xs text-red-700 mt-1">
+                                                        توجد مواعيد محاضرات أو سكاشن متداخلة في نفس التوقيت. يمكنك حل كل التعارضات بنقرة زر واحدة!
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Single Magic Solver Button */}
+                                            <button
+                                                onClick={autoResolveAllConflicts}
+                                                className="bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold text-sm px-5 py-3 rounded-xl shadow-lg border border-emerald-500 transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                                            >
+                                                <span>⚡ حل جميع التعارضات بضغطة زر واحدة</span>
+                                            </button>
+                                        </div>
+
+                                        {/* List of active conflicts */}
+                                        <div className="mt-4 pt-3 border-t border-red-200/80 space-y-2">
+                                            {scheduleConflicts.map((conf, i) => (
+                                                <div key={i} className="bg-white p-3 rounded-xl border border-red-200 text-xs text-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2 shadow-xs">
+                                                    <div>
+                                                        <span className="font-bold text-red-700">تعارض يوم {conf.day}: </span>
+                                                        <span className="font-semibold">{conf.event1.code} ({conf.event1.type})</span>
+                                                        {' ⚡ يتداخل مع ⚡ '}
+                                                        <span className="font-semibold">{conf.event2.code} ({conf.event2.type})</span>
+                                                    </div>
+                                                    <div className="text-slate-600 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                                        توقيت التداخل: {conf.event1.start} - {conf.event1.end}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Timetable Header & Optimization Actions */}
+                                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
+                                    <div>
+                                        <h2 className="text-lg font-bold text-slate-900">
+                                            الجدول الدراسي الأسبوعي لمواد الترم الأول المختارة
+                                        </h2>
+                                        <p className="text-xs text-slate-500">
+                                            مخطط أسبوعي متكامل للمحاضرات والسكاشن والمعامل
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <button
+                                            onClick={minimizeDaysOnCampus}
+                                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer border border-indigo-500"
+                                            title="إعادة توزيع مجموعات السكاشن والمعامل للحصول على أقل عدد من أيام الحضور بدون تعارضات"
+                                        >
+                                            <span>🗓️ تقليل عدد أيام النزول</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => window.print()}
+                                            className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <span>🖨️ طباعة الجدول (A4 Landscape)</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Schedule Table Grid */}
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-x-auto p-4">
+                                    <table className="w-full text-right border-collapse min-w-[800px]">
+                                        <thead>
+                                            <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs">
+                                                <th className="p-3 text-center border-l border-slate-200 font-extrabold w-24">اليوم</th>
+                                                {['08:00 - 09:50', '10:00 - 11:50', '12:00 - 13:50', '14:00 - 15:50'].map((slotStr, i) => (
+                                                    <th key={i} className="p-3 text-center border-l border-slate-200 font-bold">
+                                                        {slotStr}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-200 text-xs">
+                                            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'].map(dayName => {
+                                                const arabicDays = {
+                                                    'Sunday': 'الأحد',
+                                                    'Monday': 'الإثنين',
+                                                    'Tuesday': 'الثلاثاء',
+                                                    'Wednesday': 'الأربعاء',
+                                                    'Thursday': 'الخميس'
+                                                };
+
+                                                const dayEvents = activeScheduleEvents.filter(e => e.day === dayName);
+
+                                                return (
+                                                    <tr key={dayName} className="hover:bg-slate-50/50">
+                                                        <td className="p-3 font-bold text-slate-800 bg-slate-50 text-center border-l border-slate-200">
+                                                            {arabicDays[dayName]}
+                                                        </td>
+
+                                                        {[
+                                                            { start: 8, end: 10 },
+                                                            { start: 10, end: 12 },
+                                                            { start: 12, end: 14 },
+                                                            { start: 14, end: 16 }
+                                                        ].map((timeRange, rangeIdx) => {
+                                                            const slotEvents = dayEvents.filter(ev => {
+                                                                const evStart = parseTime(ev.start);
+                                                                const evEnd = parseTime(ev.end);
+                                                                return Math.max(evStart, timeRange.start) < Math.min(evEnd, timeRange.end);
+                                                            });
+
+                                                            const isConflicted = slotEvents.length > 1;
+
+                                                            return (
+                                                                <td key={rangeIdx} className={`p-2 border-l border-slate-200 align-top h-28 min-w-[160px] ${isConflicted ? 'bg-red-50/80' : ''}`}>
+                                                                    {slotEvents.map((ev, eIdx) => (
+                                                                        <div
+                                                                            key={eIdx}
+                                                                            className={`slot-card p-2.5 rounded-xl border shadow-xs mb-1.5 transition-all text-xs ${
+                                                                                isConflicted
+                                                                                    ? 'bg-red-600 text-white border-red-800 animate-pulse'
+                                                                                    : ev.type.includes('Lecture')
+                                                                                    ? 'bg-sky-700 text-white border-sky-800'
+                                                                                    : ev.type.includes('Lab')
+                                                                                    ? 'bg-emerald-700 text-white border-emerald-800'
+                                                                                    : 'bg-indigo-700 text-white border-indigo-800'
+                                                                            }`}
+                                                                        >
+                                                                            <div className="font-black code-font text-xs flex items-center justify-between">
+                                                                                <span>{ev.code}</span>
+                                                                                <span className="text-[10px] opacity-90">{ev.room}</span>
+                                                                            </div>
+                                                                            <div className="text-[11px] font-semibold mt-0.5 truncate">
+                                                                                {ev.name}
+                                                                            </div>
+                                                                            <div className="text-[10px] opacity-90 mt-1 flex items-center justify-between">
+                                                                                <span>{ev.type}</span>
+                                                                                <span>مجموعة: {ev.group}</span>
+                                                                            </div>
+                                                                            <div className="text-[10px] font-mono mt-0.5 opacity-80">
+                                                                                ⏱️ {ev.start} - {ev.end}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Registered Courses Summary Table */}
+                                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                                    <h3 className="font-bold text-slate-900 text-base mb-4">
+                                        قائمة المواد المسجلة بالجدول ونسبتها من ساعات القسم الكلية
+                                    </h3>
+
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-right border-collapse text-xs">
+                                            <thead>
+                                                <tr className="bg-slate-100 text-slate-700 border-b border-slate-200 font-bold">
+                                                    <th className="p-3">كود المادة</th>
+                                                    <th className="p-3">اسم المادة بالإنجليزية</th>
+                                                    <th className="p-3">السنة الدراسية</th>
+                                                    <th className="p-3 text-center">المجموعة (Group)</th>
+                                                    <th className="p-3 text-center">الساعات المعتمدة</th>
+                                                    <th className="p-3 text-center">النسبة من إجمالي ساعات القسم (144 س)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-200">
+                                                {selectedFallCourses.map(({ courseId, group }) => {
+                                                    const course = COURSE_CATALOG.find(c => c.id === courseId);
+                                                    if (!course) return null;
+                                                    const pct = ((course.credits / TOTAL_PROGRAM_HOURS) * 100).toFixed(2);
+
+                                                    return (
+                                                        <tr key={courseId} className="hover:bg-slate-50">
+                                                            <td className="p-3 font-extrabold code-font text-sky-800">{course.code}</td>
+                                                            <td className="p-3 font-semibold text-slate-800">{course.name}</td>
+                                                            <td className="p-3 text-slate-600">{course.year}</td>
+                                                            <td className="p-3 text-center font-bold text-slate-700">{group}</td>
+                                                            <td className="p-3 text-center font-bold text-slate-900">{course.credits} ساعة</td>
+                                                            <td className="p-3 text-center font-bold text-emerald-700">{pct}%</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr className="bg-slate-900 text-white font-bold">
+                                                    <td colSpan="4" className="p-3 text-left">إجمالي ساعات الجدول المسجل:</td>
+                                                    <td className="p-3 text-center text-sky-400">{totalRegisteredFallHours} ساعة</td>
+                                                    <td className="p-3 text-center text-emerald-400">{fallPercentageOfTotal}%</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Prerequisite Warning Modal */}
+                    {prereqModal.show && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 modal-overlay">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+                                <div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center font-bold text-2xl mb-4">
+                                    ⚠️
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900 mb-2">
+                                    متطلب سابق غير مجتاز!
+                                </h3>
+                                <p className="text-sm text-slate-600 mb-4">
+                                    لا يمكنك تسجيل أو إنجاز مادة <span className="font-extrabold text-slate-900">{prereqModal.course?.code} - {prereqModal.course?.name}</span> قبل اجتياز المواد التالية أولاً:
+                                </p>
+                                <ul className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-6 text-xs text-amber-900 space-y-1 font-semibold">
+                                    {prereqModal.missing.map((m, idx) => (
+                                        <li key={idx} className="flex items-center gap-2">
+                                            <span>•</span>
+                                            <span>{m}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button
+                                    onClick={() => setPrereqModal({ show: false, course: null, missing: [] })}
+                                    className="w-full bg-slate-900 hover:bg-black text-white font-bold py-2.5 rounded-xl transition-all text-xs cursor-pointer"
+                                >
+                                    فهمت ذلك
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
